@@ -119,7 +119,6 @@ python-dateutil==2.8.1
 python-docx==0.8.10
 PyTweening==1.0.3
 pytz==2019.3
-PyWavelets==1.1.1
 pywin32==227
 pywinpty==0.5.7
 pyzmq==19.0.0

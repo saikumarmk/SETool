@@ -2,18 +2,18 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq
-from cell_coloring import construct_cell_color
+from src.cell_coloring import construct_cell_color
 from dash.dependencies import Input, Output
 from dash_table.Format import Format, Scheme, Symbol, Group
 import dash_table
 import dash_bootstrap_components as dbc
-from table_filter import split_filter_part
+from src.table_filter import split_filter_part
 import pandas as pd
 import plotly.express as px
 import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
-from text_info import what_is_this, usage, more_info
+from src.text_info import what_is_this, usage, more_info
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.BOOTSTRAP]
 # Meta tags help mobile render
@@ -141,4 +141,4 @@ def update_table(page_current, page_size, sort_by, filter, data=setu):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

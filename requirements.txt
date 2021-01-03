@@ -6,3 +6,4 @@ colorutils
 pandas
 plotly
 numpy
+gunicorn

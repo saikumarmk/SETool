@@ -13,6 +13,7 @@ import plotly.express as px
 import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
+import os
 from src.text_info import what_is_this, usage, more_info
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.BOOTSTRAP]
@@ -141,4 +142,4 @@ def update_table(page_current, page_size, sort_by, filter, data=setu):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=False,port = int(os.environ.get('PORT', 5000)),host='0.0.0.0')

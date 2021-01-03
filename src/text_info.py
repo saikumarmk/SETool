@@ -39,7 +39,7 @@ more_info = dbc.Row([
     dbc.Col([html.Div(children = [
     html.H2(children='Technical information'),
     html.P(children=technical,style={'fontSize': 16})])])
-    ])
+    ],style={'padding-top':'50px'})
 
 
 

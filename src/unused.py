@@ -1,3 +1,7 @@
+'''
+This file contains unimplemented visualizations initially intended to appear but were scraped.
+'''
+
 fig = go.Figure()
 
 fig.add_trace(go.Scatterpolar(
@@ -12,25 +16,25 @@ unit_options = [{'label': name, 'value': name} for name in setu["code"]]
 spider_inf = {setu["code"][a]: [setu[f"Item {i}"][a]
                                 for i in range(1, 9)] for a in range(len(setu))}
 
-        html.Div([
-            html.H2(children='Individual unit information',
-                    id='main-screen-h2-3'),
-            dcc.Dropdown(
-                id='unit-select',
-                options=unit_options[1:16],
-                value=' MTH2140_CLAYTON_ON-CAMPUS_ON_S1-01 '
-            ),
-            html.Div([html.A("Handbook link", href='https://handbook.monash.edu/2020/units/MTH2140',
-                             id='handbook-link', className="main_row"),
-                      html.P(children='Enrolments',
-                             className='main_row', id='enrolment'),
-                      html.P(children='Responses',
-                             className='main_row', id='responses'),
-                      dcc.Graph(
-                id='radar-unit',
-                figure=fig,
-                className="main_row"
-            )])], id='main-screen-div')
+html.Div([
+    html.H2(children='Individual unit information',
+            id='main-screen-h2-3'),
+    dcc.Dropdown(
+        id='unit-select',
+        options=unit_options[1:16],
+        value=' MTH2140_CLAYTON_ON-CAMPUS_ON_S1-01 '
+    ),
+    html.Div([html.A("Handbook link", href='https://handbook.monash.edu/2020/units/MTH2140',
+                        id='handbook-link', className="main_row"),
+                html.P(children='Enrolments',
+                        className='main_row', id='enrolment'),
+                html.P(children='Responses',
+                        className='main_row', id='responses'),
+                dcc.Graph(
+        id='radar-unit',
+        figure=fig,
+        className="main_row"
+    )])], id='main-screen-div')
 
 
 @app.callback(

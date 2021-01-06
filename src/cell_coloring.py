@@ -1,5 +1,9 @@
 from colorutils import Color, hsv_to_hex
-
+'''
+This file implements the color map generated for numeric items in the table. Currently, values from [2,5.001] map to [0,0.4]
+which is then used as their hue value. 
+TODO: Implement normalized coloring, distribution of scores seems roughly normal?
+'''
 
 def normalize(value: float, a: float = 2, b: float = 5.001, limit: float = 0.4) -> float:
     '''
@@ -59,8 +63,8 @@ def construct_cell_color():
         [
             {
                 'if': {
-                    'filter_query': '{{Item {n}}} <= 2'.format(n=num),
-                    'column_id': f'Item {num}',
+                    'filter_query': '{{I{n}}} <= 2'.format(n=num),
+                    'column_id': f'I{num}',
                 },
                 'backgroundColor': '#FF0000',
                 'color': 'black'
@@ -72,8 +76,8 @@ def construct_cell_color():
             [
                 {
                     'if': {
-                        'filter_query': '{{Item {n}}} > {lower} && {{Item {n}}} <= {upper}'.format(n=num, lower=color_step/20, upper=(color_step+1)/20),
-                        'column_id': f'Item {num}',
+                        'filter_query': '{{I{n}}} > {lower} && {{I{n}}} <= {upper}'.format(n=num, lower=color_step/20, upper=(color_step+1)/20),
+                        'column_id': f'I{num}',
                     },
                     'backgroundColor': red_green_map(normalize(color_step/20)),
                     'color': 'black'

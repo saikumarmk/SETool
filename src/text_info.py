@@ -17,7 +17,9 @@ usage_dp = [
     "Numeric columns (e.g Items 1-8, mean score, Responses) can be filtered using inequalities in the Filter data section.",
     "To sort by highest/lowest, click on the up/down arrow within the header of each category.",
     "Text rows (unit code and semester) can be filtered using the word you want, typically the school name.",
-    "If there are more than 50 results, you can navigate to the next page by scrolling to the bottom and clicking on the next page icon."
+    "If there are more than 50 results, you can navigate to the next page by scrolling to the bottom and clicking on the next page icon.",
+    "The comparison table can hold units you wish to compare. You can add units by pressing the checkbox to the left.",
+    "The filters do what they suggest. If no filters are selected, all units are shown by default."
 ]
 usage = html.Div(children = [
     html.H2(children='The Basics'),

@@ -88,12 +88,13 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                     html.H2(children='Filters'),
                     html.H3(children='Show Levels'),
                     dcc.Checklist(id='levels', options=[
-                                  {'label': num, 'value': num} for num in range(1, 10)], value=[],labelStyle={'fontSize':16,'textAlign':'right','padding-left':'5px'}),
+                                  {'label': num, 'value': num} for num in range(1, 10)], value=[], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'}),
                     html.H3(children='Hide flexible variants?'),
                     dcc.Checklist(id='flexible', options=[
-                                  {'label': "", 'value': 'Yes'}], value=[],labelStyle={'fontSize':16,'textAlign':'right','padding-left':'5px'}),
+                                  {'label': "", 'value': 'Yes'}], value=[], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'}),
                     html.H3(children='Show Semester'),
-                    dcc.Checklist(id='semester',options=[{'label':"S1",'value':'S1'},{'label':"S2",'value':'S2'}],value=[],labelStyle={'fontSize':16,'textAlign':'right','padding-left':'5px'})
+                    dcc.Checklist(id='semester', options=[{'label': "S1", 'value': 'S1'}, {'label': "S2", 'value': 'S2'}], value=[
+                    ], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'})
                 ])
             ])
         ]),
@@ -112,11 +113,15 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            sort_action='custom',
                                            sort_mode='multi',
                                            row_selectable='multi',
-
+                                           tooltip_delay=0,
+                                           tooltip_duration=None,
+                                           tooltip_header={
+                                               f'I{num+1}': categories[num] for num in range(0, 8)},
                                            selected_rows=[],
                                            sort_by=[],
                                            style_data_conditional=construct_cell_color(),
-
+                                           style_filter={
+                                               'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
                                            style_table={'overflowX': 'auto'},
                                            style_cell={
                                                'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
@@ -142,9 +147,14 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            editable=True,
                                            row_deletable=True,
                                            style_data_conditional=construct_cell_color(),
-
+                                           tooltip_delay=0,
+                                           tooltip_duration=None,
+                                           tooltip_header={
+                                               f'I{num+1}': categories[num] for num in range(0, 8)},
                                            style_table={'overflowX': 'auto'},
                                            style_cell={
+                                               'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
+                                           style_filter={
                                                'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
                                            merge_duplicate_headers=True
                                            )])
@@ -155,6 +165,8 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
 ])
 
 # Modify cells shown from various input types
+
+
 @app.callback(
     Output('datatable-page', 'data'),
     Input('datatable-page', 'page_current'),
@@ -165,10 +177,10 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
     Input('levels', 'value'),
     Input('semester', 'value')
 )
-def update_table(page_current, page_size, sort_by, filter, flexible, levels,semester, data=setu):
+def update_table(page_current, page_size, sort_by, filter, flexible, levels, semester, data=setu):
     filtering_expressions = filter.split(' && ')
     dff = data
-    
+
     # No input, don't show anything
     if not filter:
         return pd.Series([], dtype=object)
@@ -179,7 +191,7 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels,seme
     if levels:  # something was chosen
         dff = dff.loc[dff['Level'].isin(levels)]
 
-    if semester: # sem was chosen
+    if semester:  # sem was chosen
         dff = dff.loc[dff['Semester'].isin(semester)]
 
     for filter_part in filtering_expressions:
@@ -210,6 +222,8 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels,seme
     return dff.iloc[page * size: (page + 1) * size].to_dict('records')
 
 # modify comparison table
+
+
 @app.callback(
     Output('compare-table', 'data'),
     Input('compare-table', 'page_current'),
@@ -222,12 +236,10 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels,seme
 )
 def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, data):
     filtering_expressions = filter.split(' && ')
-    if not dv_rows:
-        return data
-
-    data = pd.concat([pd.DataFrame(data), setu.iloc[dv_rows]])
-    dff = data
-
+    if dv_rows:
+        data = pd.concat([pd.DataFrame(data), setu.iloc[dv_rows]]
+                        ).drop_duplicates()
+    dff = pd.DataFrame(data)
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
 
@@ -257,5 +269,6 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, d
 
 
 if __name__ == '__main__':
-    # 
-    app.run_server(debug=False, port=int(os.environ.get('PORT', 5000)),host='0.0.0.0')
+    #
+    app.run_server(debug=False, port=int(
+        os.environ.get('PORT', 5000)),host='0.0.0.0')

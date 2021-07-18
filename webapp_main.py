@@ -30,7 +30,7 @@ PAGE_SIZE = 50
 setu = pd.read_csv("assets/SETU_ALL_2020.csv").drop(columns=["Unnamed: 0"])
 comparison = pd.Series([], dtype=object)
 setu['id'] = range(len(setu))
-setu['Handbook'] = '[Link](https://handbook.monash.edu/2020/units/' + \
+setu['Handbook'] = '[Link](https://handbook.monash.edu/2021/units/' + \
     setu.unit_code+')'
 setu.set_index('id', inplace=True, drop=False)
 
@@ -39,12 +39,12 @@ score_fmt = Format().scheme(Scheme.fixed).precision(2)
 columns = [
     {'name': 'code', 'id': 'code'},
     {'name': 'Unit Code', 'id': 'unit_code'},
-    {'name': 'Level', 'id': 'Level', 'type': 'numeric'},
-    {'name': 'Semester       ', 'id': 'Semester'},
+    {'name': 'Level', 'id': 'Level', 'type': 'numeric'}, # TODO remove season
+    {'name': 'Season', 'id': 'Semester'}, # TODO CHANGE TO Season WHAT THE FUCK DID YOU DO HERE ???
 ] + [
     {'name': f'I{num}', 'id': f'I{num}',
         'type': 'numeric', 'format': score_fmt}
-    for num in range(1, 9)
+    for num in range(1, 9) # TODO CHANGE TO 14
 ] + [
     {'name': 'mean_score', 'id': 'mean_score',
         'type': 'numeric', 'format': score_fmt},
@@ -62,8 +62,16 @@ for column in columns:
     column['hideable'] = True
 
 # TODO: Put all text in text_info
-categories = ['Clarity of Learning Outcomes', 'Clear Assessment', "Demonstrate Learning Outcomes", "Feedback and Learning Outcomes",
-              "Resources and Learning Outcomes", "Activities and Learning Outcomes", "Engagement", "Satisfaction"]
+categories = [
+    'Clarity of Learning Outcomes', 'Clear Assessment', 
+"Demonstrate Learning Outcomes", "Feedback and Learning Outcomes",
+"Resources and Learning Outcomes", "Activities and Learning Outcomes", 
+"Engagement", "Satisfaction", # Need to add in the 12 items
+"Relevant assessment to unit", "Links between content",
+"Good mix of theory and app.", "Active participation",
+"Capacity for critical thinking"
+
+]
 
 # App body design here
 app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
@@ -94,7 +102,13 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                   {'label': "", 'value': 'Yes'}], value=[], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'}),
                     html.H3(children='Show Semester'),
                     dcc.Checklist(id='semester', options=[{'label': "S1", 'value': 'S1'}, {'label': "S2", 'value': 'S2'}], value=[
-                    ], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'})
+                    ], labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'}),
+                    dcc.RadioItems(options=[
+                    {'label':'Mean', 'value':0},
+                    {'label':'Median','value':1}],
+                    id='meanmedian',
+                    value=0,
+                    labelStyle={'fontSize': 16, 'textAlign': 'right', 'padding-left': '5px'})
                 ])
             ])
         ]),
@@ -104,7 +118,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
             html.Div([dash_table.DataTable(id='datatable-page',
                                            columns=columns,
                                            hidden_columns=[
-                                               'code', 'Response Rate', 'Invited'],
+                                               'Level','Handbook','code', 'Response Rate', 'Invited'],
                                            page_current=0,
                                            page_size=PAGE_SIZE,
                                            page_action="custom",
@@ -116,7 +130,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            tooltip_delay=0,
                                            tooltip_duration=None,
                                            tooltip_header={
-                                               f'I{num+1}': categories[num] for num in range(0, 8)},
+                                               f'I{num+1}': categories[num] for num in range(0, 8)}, # TODO add in items 1-9 & thing
                                            selected_rows=[],
                                            sort_by=[],
                                            style_data_conditional=construct_cell_color(),
@@ -135,7 +149,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            data=comparison,
                                            columns=columns,
                                            hidden_columns=[
-                                               'code', 'Response Rate', 'Invited'],
+                                               'Level','Handbook','code', 'Response Rate', 'Invited'],
                                            page_current=0,
                                            page_size=PAGE_SIZE,
                                            page_action="custom",
@@ -150,7 +164,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            tooltip_delay=0,
                                            tooltip_duration=None,
                                            tooltip_header={
-                                               f'I{num+1}': categories[num] for num in range(0, 8)},
+                                               f'I{num+1}': categories[num] for num in range(0, 8)}, # TODO FUUUUUUUUCK
                                            style_table={'overflowX': 'auto'},
                                            style_cell={
                                                'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
@@ -175,9 +189,16 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
     Input('datatable-page', 'filter_query'),
     Input('flexible', 'value'),
     Input('levels', 'value'),
-    Input('semester', 'value')
+    Input('semester', 'value'),
+    Input('meanmedian','value')
 )
-def update_table(page_current, page_size, sort_by, filter, flexible, levels, semester, data=setu):
+def update_table(page_current, page_size, sort_by, filter, flexible, levels, semester, meanmedian, data=setu):
+    '''
+    Need a way to switch between median and mean
+
+
+    '''
+
     filtering_expressions = filter.split(' && ')
     dff = data
 
@@ -191,7 +212,7 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
     if levels:  # something was chosen
         dff = dff.loc[dff['Level'].isin(levels)]
 
-    if semester:  # sem was chosen
+    if semester:  # TODO sem was chosen, this will be replaced with season, do .str.contains any of
         dff = dff.loc[dff['Semester'].isin(semester)]
 
     for filter_part in filtering_expressions:
@@ -206,6 +227,12 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
             dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+    # At the very end, get by mean or median, 0 = mean, median = 1
+    '''
+    dff[[f'I{n}' for n in range(1,9)]] = dff[[f'I{n}' for n in range(1,9)]].apply(lambda x:x[meanmedian])
+    Also change agg score if needed
+    '''
 
     if len(sort_by):
         dff = dff.sort_values(
@@ -232,9 +259,10 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
     Input('compare-table', 'filter_query'),
     Input('datatable-page', 'derived_virtual_data'),
     Input('datatable-page', 'selected_row_ids'),
+    Input('meanmedian','value'),
     State('compare-table', 'data')
 )
-def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, data):
+def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, meanmedian, data):
     filtering_expressions = filter.split(' && ')
     if dv_rows:
         data = pd.concat([pd.DataFrame(data), setu.iloc[dv_rows]]

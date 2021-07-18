@@ -69,7 +69,7 @@ def construct_cell_color():
                 'backgroundColor': '#FF0000',
                 'color': 'black'
             }
-            for num in range(1, 9)
+            for num in range(1, 9) # TODO CHANGE TO 13
         ]
         +
         flatten([
@@ -84,6 +84,6 @@ def construct_cell_color():
                 }
                 for color_step in range(40, 100, 1)
             ]
-            for num in range(1, 9)  # Iterate over all 9 items
+            for num in range(1, 9)  # TODO  CHANGE TO 13
         ])
     )

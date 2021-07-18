@@ -14,7 +14,11 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
 import os
+import numpy 
+from ast import literal_eval
 from src.text_info import what_is_this, usage, more_info
+from pickle import load
+
 
 external_stylesheets = [
     'https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.BOOTSTRAP]
@@ -27,7 +31,8 @@ server = app.server
 PAGE_SIZE = 50
 
 # Initializing df and adding a few new columns
-setu = pd.read_csv("assets/SETU_ALL_2020.csv").drop(columns=["Unnamed: 0"])
+with open("setudb_total.pkl",'rb') as file: setu = load(file)
+#setu = setu.fillna(0)
 comparison = pd.Series([], dtype=object)
 setu['id'] = range(len(setu))
 setu['Handbook'] = '[Link](https://handbook.monash.edu/2021/units/' + \
@@ -39,14 +44,14 @@ score_fmt = Format().scheme(Scheme.fixed).precision(2)
 columns = [
     {'name': 'code', 'id': 'code'},
     {'name': 'Unit Code', 'id': 'unit_code'},
-    {'name': 'Level', 'id': 'Level', 'type': 'numeric'}, # TODO remove season
-    {'name': 'Season', 'id': 'Semester'}, # TODO CHANGE TO Season WHAT THE FUCK DID YOU DO HERE ???
+    {'name': 'Level', 'id': 'Level', 'type': 'numeric'},
+    {'name': 'Season', 'id': 'Season'}, 
 ] + [
     {'name': f'I{num}', 'id': f'I{num}',
         'type': 'numeric', 'format': score_fmt}
-    for num in range(1, 9) # TODO CHANGE TO 14
+    for num in range(1, 14) 
 ] + [
-    {'name': 'mean_score', 'id': 'mean_score',
+    {'name': 'Overall Score', 'id': 'agg_score',
         'type': 'numeric', 'format': score_fmt},
     {'name': 'Invited', 'id': 'Invited', 'type': 'numeric'},
     {'name': 'Responses', 'id': 'Responses', 'type': 'numeric'},
@@ -130,7 +135,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            tooltip_delay=0,
                                            tooltip_duration=None,
                                            tooltip_header={
-                                               f'I{num+1}': categories[num] for num in range(0, 8)}, # TODO add in items 1-9 & thing
+                                               f'I{num+1}': categories[num] for num in range(0, 13)}, 
                                            selected_rows=[],
                                            sort_by=[],
                                            style_data_conditional=construct_cell_color(),
@@ -164,7 +169,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                                            tooltip_delay=0,
                                            tooltip_duration=None,
                                            tooltip_header={
-                                               f'I{num+1}': categories[num] for num in range(0, 8)}, # TODO FUUUUUUUUCK
+                                               f'I{num+1}': categories[num] for num in range(0,13)}, 
                                            style_table={'overflowX': 'auto'},
                                            style_cell={
                                                'fontSize': 20, 'color': 'black', 'textAlign': 'center'},
@@ -179,6 +184,14 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
 ])
 
 # Modify cells shown from various input types
+
+def statistic_swapper(entry, position: int):
+    if type(entry) == list:
+        return entry[position]
+    elif type(entry) == int:
+        return entry
+    else:
+        return 0
 
 
 @app.callback(
@@ -198,9 +211,9 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
 
 
     '''
-
     filtering_expressions = filter.split(' && ')
     dff = data
+
 
     # No input, don't show anything
     if not filter:
@@ -213,14 +226,16 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
         dff = dff.loc[dff['Level'].isin(levels)]
 
     if semester:  # TODO sem was chosen, this will be replaced with season, do .str.contains any of
-        dff = dff.loc[dff['Semester'].isin(semester)]
+        dff = dff.loc[dff['Season'].str.contains('|'.join(semester))]
+
+
 
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
 
         if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
             # these operators match pandas series operator method names
-            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+            dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(position,meanmedian)), operator)(filter_value)]
         elif operator == 'contains':
             dff = dff.loc[dff[col_name].str.contains(filter_value)]
         elif operator == 'datestartswith':
@@ -229,11 +244,8 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
             dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 
     # At the very end, get by mean or median, 0 = mean, median = 1
-    '''
-    dff[[f'I{n}' for n in range(1,9)]] = dff[[f'I{n}' for n in range(1,9)]].apply(lambda x:x[meanmedian])
-    Also change agg score if needed
-    '''
-
+    for item in range(1,14): dff[f'I{item}'] = dff[f'I{item}'].apply(lambda position: statistic_swapper(position,meanmedian))
+    dff['agg_score'] = dff['agg_score'].apply(lambda x: x[meanmedian])
     if len(sort_by):
         dff = dff.sort_values(
             [col['column_id'] for col in sort_by],
@@ -264,16 +276,19 @@ def update_table(page_current, page_size, sort_by, filter, flexible, levels, sem
 )
 def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, meanmedian, data):
     filtering_expressions = filter.split(' && ')
-    if dv_rows:
-        data = pd.concat([pd.DataFrame(data), setu.iloc[dv_rows]]
-                        ).drop_duplicates()
+
+    if data or dv_rows:
+        data = setu.iloc[list(set(dv_rows) | {item['id'] for item in data})]
     dff = pd.DataFrame(data)
+
+
+
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
 
         if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
             # these operators match pandas series operator method names
-            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+            dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(position,meanmedian)), operator)(filter_value)]
         elif operator == 'contains':
             dff = dff.loc[dff[col_name].str.contains(filter_value)]
         elif operator == 'datestartswith':
@@ -281,6 +296,9 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, m
             # only works with complete fields in standard format
             dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 
+    if 'agg_score' in dff.columns:
+        for item in range(1,14): dff[f'I{item}'] = dff[f'I{item}'].apply(lambda position: statistic_swapper(position,meanmedian))
+        dff['agg_score'] = dff['agg_score'].apply(lambda x: x[meanmedian])
     if len(sort_by):
         dff = dff.sort_values(
             [col['column_id'] for col in sort_by],
@@ -298,5 +316,5 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, m
 
 if __name__ == '__main__':
     #
-    app.run_server(debug=False, port=int(
+    app.run_server(debug=True, port=int(
         os.environ.get('PORT', 5000)),host='0.0.0.0')

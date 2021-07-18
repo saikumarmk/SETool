@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import numpy as np
 import pickle
 import pandas as pd
-from copy import deepcopy
+import os
 '''
 This is the file that extracts the statistics from SETU data (not provided). You may run this script by uncommenting the gen_database functions.
 The process to extract all SETU information can take a few minutes, so be patient! After this, they are serialized for convenient use later down the line.
@@ -50,6 +50,7 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
         entry["Responses"] = responded
         entry["Invited"] = invited
         entry["Season"] = season
+        entry['Response Rate'] = responded/invited*100
 
         # Full unit code
         code = article.find("table").find_all("tr")[3].text
@@ -59,15 +60,16 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
             continue
 
         entry["code"] = code
-        entry["unit_code"] = code.split("_")[0]
+        entry["unit_code"] = code.split("_")[0][1:]
         # Do not display on datatable, used only for queries
         try:
-            entry["Level"] = int(entry["unit_code"][4]) 
+            entry["Level"] = int(entry["unit_code"][3]) 
         except ValueError: 
             entry["Level"] = 0
         scores = []
         # Response categories, retrieve all tables
-        for divs in article.find_all("div", attrs={"class": "FrequencyBlock_HalfMain"}):
+        for item_num,divs in enumerate(
+            article.find_all("div", attrs={"class": "FrequencyBlock_HalfMain"})):
 
             score_table = divs.find_all("table")[1].tbody.find_all("tr") # Split by stats and chart
 
@@ -81,56 +83,28 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
             # Attempt conversion, not sure if this activates...?
             try:
                 mean, median = float(mean), float(median)
+                entry[f'I{item_num+1}'] = [mean,median]
                 scores.append([mean,median])
             except ValueError:
                 print(f"score could not be converted: {code}, {mean}, {median}")
 
-        entry["scores"] = np.array(scores)
+        entry['agg_score'] = [sum(map(
+            lambda item:item[measure],scores))/len(scores)
+            for measure in range(2)
+            ]
+
         database[code] = entry
         # Serialize after each point
         '''
         with open(save_filename, "wb") as f:
             pickle.dump(database, f, pickle.HIGHEST_PROTOCOL)
         '''
+
+    df = pd.DataFrame(database).T.fillna(0)
     with open(save_filename, "wb") as f:
-        pickle.dump(database, f, pickle.HIGHEST_PROTOCOL)        
-    return database
-
-
-def load_database(filename):
-    '''
-    Deserializes pickled database files into a dict.
-    load_database: str -> dict
-    '''
-    with open(filename, "rb") as f:
-        database = pickle.load(f)
-    return database
-
-
-def to_dataframe(db:dict) -> pd.DataFrame:
-    '''
-    Converts the input dict to a dataframe. 
-
-    :param db: Dictionary of unit statistics.
-    :output: Dataframe of all units with their statistics.
-
-    '''
-    for unit_name in db:
-        for item_index in range(len(db[unit_name]['scores'])):
-            db[unit_name][f'I{item_index+1}'] = db[unit_name]["scores"][item_index]
-    df = pd.DataFrame(db).T
-
-    df["unit_code"] = df["unit_code"].apply(lambda x: x[1:])
-    df['agg_score'] = df['scores'].apply(
-        lambda entry: [sum(item[measure] for item in entry)/len(entry) for measure in range(2)]
-    ) # Determine mean of all items over mean and median
-    df = df.drop(["scores", ], axis=1)
-    df["school"] = df["unit_code"].str[0:3]
-    df["Response Rate"] = df['Responses']/df['Invited']*100
-
-    df = df.reindex(columns=["code", "unit_code", "school", "Level", "Season"]+[
-                    f'I{i}' for i in range(1, 14)]+["agg_score", "Invited", "Responses", "Response Rate"])
+        pickle.dump(df, f, pickle.HIGHEST_PROTOCOL)        
     return df
+
 
 
 if __name__ == '__main__':
@@ -145,6 +119,11 @@ if __name__ == '__main__':
     pd.concat([setu_s1, setu_s2]).reset_index(
         drop=True).to_csv("SETU_2020_All.csv")
     '''
-    db = gen_database("D://Programming//Python//data_analysis//2021_S1_SETU.htm", "setudb_2021_S1.pkl", "2021_S1")
-    df = to_dataframe(db)
-    df.to_csv("SETU_2021.csv")
+
+    base = 'conversion'
+    reports = ['2019_S2','2020_S1','2020_S2','2021_S1']
+    db = pd.concat([gen_database(f'{base}//{report}_SETU.html', f"setudb_{report}.pkl", report) for report in reports]).reset_index(drop=True)
+
+    with open('setudb_total.pkl','wb') as file:
+        pickle.dump(db, file, pickle.HIGHEST_PROTOCOL)
+    print(db)

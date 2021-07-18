@@ -41,8 +41,8 @@ def construct_cell_color():
         [   # Hardcap all scores under 2 to be red
             {
                 'if': {
-                    'filter_query': '{mean_score} <= 2',
-                    'column_id': 'mean_score'
+                    'filter_query': '{agg_score} <= 2',
+                    'column_id': 'agg_score'
                 },
                 'backgroundColor': '#FF0000',
                 'color': 'black'
@@ -52,8 +52,8 @@ def construct_cell_color():
         [   # For all values within [2,5], normalize then color map
             {
                 'if': {
-                    'filter_query': '{{mean_score}} > {lower} && {{mean_score}} <= {upper}'.format(lower=color_step/20, upper=(color_step+1)/20),
-                    'column_id': 'mean_score',
+                    'filter_query': '{{agg_score}} > {lower} && {{agg_score}} <= {upper}'.format(lower=color_step/20, upper=(color_step+1)/20),
+                    'column_id': 'agg_score',
                 },
                 'backgroundColor': red_green_map(normalize(color_step/20))
             }
@@ -63,13 +63,25 @@ def construct_cell_color():
         [
             {
                 'if': {
-                    'filter_query': '{{I{n}}} <= 2'.format(n=num),
+                    'filter_query': '{{I{n}}} < 1.0'.format(n=num),
+                    'column_id': f'I{num}',
+                },
+                'backgroundColor': '#808080',
+                'color': 'white'
+            }
+            for num in range(1, 14) 
+        ]
+        +
+        [
+            {
+                'if': {
+                    'filter_query': '{{I{n}}} <= 2 && {{I{n}}} >= 1'.format(n=num),
                     'column_id': f'I{num}',
                 },
                 'backgroundColor': '#FF0000',
                 'color': 'black'
             }
-            for num in range(1, 9) # TODO CHANGE TO 13
+            for num in range(1, 14) 
         ]
         +
         flatten([
@@ -84,6 +96,6 @@ def construct_cell_color():
                 }
                 for color_step in range(40, 100, 1)
             ]
-            for num in range(1, 9)  # TODO  CHANGE TO 13
+            for num in range(1, 14) 
         ])
     )

@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 from src.table_filter import split_filter_part
 import pandas as pd
 from src.text_info import what_is_this, usage, more_info
-from pickle import load
+import pickle
 import os
 
 external_stylesheets = [
@@ -25,7 +25,7 @@ PAGE_SIZE = 50
 
 # Initializing df and adding a few new columns
 with open("assets//setudb_total.pkl", 'rb') as file:
-    setu = load(file)
+    setu = pickle.load(file)
 
 setu['id'] = range(len(setu))
 setu['Handbook'] = '[Link](https://handbook.monash.edu/2021/units/' + \

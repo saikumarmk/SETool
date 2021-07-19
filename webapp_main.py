@@ -324,5 +324,5 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, m
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=int(
+    app.run_server(debug=False, port=int(
         os.environ.get('PORT', 5000)), host='0.0.0.0')

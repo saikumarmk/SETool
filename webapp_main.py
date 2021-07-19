@@ -187,7 +187,7 @@ def statistic_swapper(entry, position: int):
     '''
     if type(entry) == list:
         return entry[position]
-    elif type(entry) == int:
+    elif type(entry) == int or type(entry)==str:
         return entry
     else:
         return 0

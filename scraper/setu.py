@@ -108,18 +108,7 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
 
 
 if __name__ == '__main__':
-    '''
-    gen_database("2020_S2_SETU.html", "setudb_2020_S2.pkl", "S2")
-    print("Done S2 2020")
-    gen_database("SETU.html", "setudb_2020_S1.pkl", "S1")
-    print("Done S1 2020") #'SETU_2020_S1' 'SETU_2020_S2'
-    
-    setu_s1 = to_dataframe(load_database('setudb_2020_S1.pkl'))
-    setu_s2 = to_dataframe(load_database('setudb_2020_S2.pkl'))
-    pd.concat([setu_s1, setu_s2]).reset_index(
-        drop=True).to_csv("SETU_2020_All.csv")
-    '''
-
+    # Open script from base directory
     base = 'conversion'
     reports = ['2019_S2','2020_S1','2020_S2','2021_S1']
     db = pd.concat([gen_database(f'{base}//{report}_SETU.html', f"setudb_{report}.pkl", report) for report in reports]).reset_index(drop=True)

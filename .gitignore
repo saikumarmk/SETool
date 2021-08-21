@@ -133,3 +133,5 @@ conversion/
 *.htm
 
 todo.md
+scraper/batch_conversion.htm
+scraper/content_extractor.ipynb

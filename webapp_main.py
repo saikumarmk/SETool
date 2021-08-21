@@ -85,7 +85,7 @@ app.layout = html.Div(style={'fontColor': 'blue'}, id='main-screen', children=[
                     html.H2(children='Overview'),
                     html.P(what_is_this, id='main-screen-h2-1',
                            style={'fontSize': 16}),
-                    html.Ul([html.Li([item], style={'fontSize': 16}) for item in categories
+                    html.Ol([html.Li([item], style={'fontSize': 16}) for item in categories
                              ])
                 ])]),
             dbc.Col([usage])]),

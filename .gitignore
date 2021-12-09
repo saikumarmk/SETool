@@ -135,3 +135,4 @@ conversion/
 todo.md
 scraper/batch_conversion.htm
 scraper/content_extractor.ipynb
+handbook.py

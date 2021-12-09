@@ -54,11 +54,13 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
 
         # Full unit code
         code = article.find("table").find_all("tr")[3].text
+        unit_name = article.find("table").find_all('tr')[4].text
 
         # Filter out MALAYSIA, COMPOSITE, ALFRED, SAFRICA
         if any(location in code for location in ["MALAYSIA","ALFRED","SAFRICA","FLEXIBLE"]):
             continue
-
+        
+        entry['unit_name'] = unit_name
         entry["code"] = code
         entry["unit_code"] = code.split("_")[0][1:]
         # Do not display on datatable, used only for queries
@@ -110,7 +112,7 @@ def gen_database(filename: str, save_filename: str, season: str) -> dict:
 if __name__ == '__main__':
     # Open script from base directory
     base = 'conversion'
-    reports = ['2019_S2','2020_S1','2020_S2','2021_S1']
+    reports = ['2019_S2','2020_S1','2020_S2','2021_S1', '2021_S2']
     db = pd.concat([gen_database(f'{base}//{report}_SETU.html', f"setudb_{report}.pkl", report) for report in reports]).reset_index(drop=True)
 
     with open('setudb_total.pkl','wb') as file:

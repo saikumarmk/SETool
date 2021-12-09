@@ -29,7 +29,7 @@ with open("assets//setudb_total.pkl", 'rb') as file:
 
 setu['id'] = range(len(setu))
 setu['Handbook'] = '[Link](https://handbook.monash.edu/2021/units/' + \
-    setu.unit_code+')'
+    setu.unit_code+')' # hmm....
 setu.set_index('id', inplace=True, drop=False)  # Allows for comparison table
 comparison = pd.Series([], dtype=object)
 
@@ -37,7 +37,8 @@ comparison = pd.Series([], dtype=object)
 # Then set up headers for the datatable
 score_fmt = Format().scheme(Scheme.fixed).precision(2)
 columns = [
-    {'name': 'code', 'id': 'code'},
+    {'name':'Unit Name', 'id':'unit_name'},
+    {'name': 'code', 'id': 'code'}, # add name here 
     {'name': 'Unit Code', 'id': 'unit_code'},
     {'name': 'Level', 'id': 'Level', 'type': 'numeric'},
     {'name': 'Season', 'id': 'Season'},
@@ -241,7 +242,7 @@ def update_table(page_current, page_size, sort_by, filter, levels, semester, mea
             dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(
                 position, meanmedian)), operator)(filter_value)]  # Get the right item
         elif operator == 'contains':
-            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+            dff = dff.loc[dff[col_name].str.contains(filter_value.upper())]
         elif operator == 'datestartswith':
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
@@ -298,7 +299,7 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, m
             dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(
                 position, meanmedian)), operator)(filter_value)]
         elif operator == 'contains':
-            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+            dff = dff.loc[dff[col_name].str.contains(filter_value.upper())]
         elif operator == 'datestartswith':
             dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 

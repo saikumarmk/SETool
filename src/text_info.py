@@ -15,7 +15,12 @@ Data with scraped using a modified BS4 script (credits to Jake Vandenberg for th
 Following the extraction, the Dash library was used to create a web application with an interactive 
 datatable on the site.
 '''
-changelog = ['20/07/2021' ,
+changelog = [
+    '09/12/2021',
+    "Added 2021_S2 items.",
+    "Added unit names.",
+    "Unit code searching is no longer case-sensitive.",
+    '20/07/2021' ,
 "Hidden the level column by default. Added in 2021 and 2019 to the dataset.",
 'Added all 13 items where applicable, otherwise it defaults to gray.',
 "Now allows for switching between mean and median.",

@@ -16,6 +16,8 @@ Following the extraction, the Dash library was used to create a web application 
 datatable on the site.
 '''
 changelog = [
+    '17/01/2022',
+    'Fixed a bug related to Unit Name searching where it would fail.',
     '09/12/2021',
     "Added 2021_S2 items.",
     "Added unit names.",

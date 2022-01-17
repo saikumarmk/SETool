@@ -241,8 +241,10 @@ def update_table(page_current, page_size, sort_by, filter, levels, semester, mea
             # these operators match pandas series operator method names
             dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(
                 position, meanmedian)), operator)(filter_value)]  # Get the right item
-        elif operator == 'contains':
+        elif operator == 'icontains' or col_name == 'unit_code':
             dff = dff.loc[dff[col_name].str.contains(filter_value.upper())]
+        elif operator == 'scontains' :
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
         elif operator == 'datestartswith':
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
@@ -297,10 +299,14 @@ def update_comparison(page_current, page_size, sort_by, filter, rows, dv_rows, m
         if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
             # these operators match pandas series operator method names
             dff = dff.loc[getattr(dff[col_name].apply(lambda position: statistic_swapper(
-                position, meanmedian)), operator)(filter_value)]
-        elif operator == 'contains':
+                position, meanmedian)), operator)(filter_value)]  # Get the right item
+        elif operator == 'icontains' or col_name == 'unit_code':
             dff = dff.loc[dff[col_name].str.contains(filter_value.upper())]
+        elif operator == 'scontains' :
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
         elif operator == 'datestartswith':
+            # this is a simplification of the front-end filtering logic,
+            # only works with complete fields in standard format
             dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 
     if 'agg_score' in dff.columns:
